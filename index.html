@@ -90,6 +90,7 @@ button:hover {
 <input type="email" name="mail" required>
 
 <input type="hidden" name="numero_orden" id="numero_orden">
+<input type="hidden" name="cantidad_preguntas" id="cantidad_preguntas">
 
 <div id="preguntasContainer"></div>
 
@@ -121,6 +122,8 @@ if (!numeroOrden) {
 
 if (!cantidad || cantidad < 1) cantidad = 1;
 if (cantidad > 3) cantidad = 3;
+
+document.getElementById("cantidad_preguntas").value = cantidad;
 
 const container = document.getElementById("preguntasContainer");
 
