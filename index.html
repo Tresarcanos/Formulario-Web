@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta de Tarot</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: #1c1c1c;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+h1 {
+    text-align: center;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: none;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.pregunta-block {
+    margin-top: 25px;
+    padding: 15px;
+    background: #222;
+    border-radius: 8px;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px;
+    width: 100%;
+    background: purple;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #a020f0;
+}
+
+.oculto {
+    display: none;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+<h1>Consulta de Tarot</h1>
+
+<form id="tarotForm">
+
+<label>Nombre completo</label>
+<input type="text" name="nombre" required>
+
+<label>Edad</label>
+<input type="number" name="edad" required>
+
+<label>Fecha de nacimiento</label>
+<input type="date" name="fecha_nacimiento" id="fecha_nacimiento" required>
+
+<label>Mail</label>
+<input type="email" name="mail" required>
+
+<input type="hidden" name="numero_orden" id="numero_orden">
+
+<div id="preguntasContainer"></div>
+
+<button type="submit">Enviar Consulta</button>
+
+</form>
+</div>
+
+<script>
+
+// Leer parámetro de URL
+const params = new URLSearchParams(window.location.search);
+let cantidad = parseInt(params.get("preguntas"));
+
+// Bloquear fechas futuras en fecha de nacimiento
+const fechaInput = document.getElementById("fecha_nacimiento");
+const hoy = new Date().toISOString().split("T")[0];
+fechaInput.setAttribute("max", hoy);
+
+// Obtener número de orden desde la URL
+const numeroOrden = params.get("orden");
+
+if (!numeroOrden) {
+    alert("Error: No se detectó número de orden.");
+    window.location.href = "https://tusitio.com";
+} else {
+    document.getElementById("numero_orden").value = numeroOrden;
+}
+
+if (!cantidad || cantidad < 1) cantidad = 1;
+if (cantidad > 3) cantidad = 3;
+
+const container = document.getElementById("preguntasContainer");
+
+for (let i = 1; i <= cantidad; i++) {
+
+    const block = document.createElement("div");
+    block.classList.add("pregunta-block");
+
+    block.innerHTML = `
+        <h3>Consulta ${i}</h3>
+
+        <label>Tema de la consulta</label>
+        <select name="tema_${i}" id="tema_${i}" required onchange="mostrarOtro(${i})">
+            <option value="">Seleccionar...</option>
+            <option value="Amor / Relaciones">Amor / Relaciones</option>
+            <option value="Trabajo / Dinero">Trabajo / Dinero</option>
+            <option value="Familia">Familia</option>
+            <option value="Crecimiento personal / decisiones">Crecimiento personal / decisiones</option>
+            <option value="Otro">Otro (especificar)</option>
+        </select>
+
+        <div id="otro_container_${i}" class="oculto">
+            <label>Especifica por favor</label>
+            <input type="text" name="tema_otro_${i}">
+        </div>
+
+        <label>Pregunta sobre ese tema (máx. 135 caracteres)</label>
+        <textarea 
+            name="pregunta_${i}" 
+            id="pregunta_${i}" 
+            rows="4" 
+            maxlength="135" 
+            required
+            oninput="limpiarTexto(${i})"
+        ></textarea>
+
+        <div style="text-align:right; font-size:12px;">
+            <span id="contador_${i}">0</span>/135
+        </div>
+    `;
+
+    container.appendChild(block);
+}
+
+// Mostrar campo "otro"
+function mostrarOtro(i) {
+    const select = document.getElementById(`tema_${i}`);
+    const otroContainer = document.getElementById(`otro_container_${i}`);
+
+    if (select.value === "Otro") {
+        otroContainer.classList.remove("oculto");
+        otroContainer.querySelector("input").required = true;
+    } else {
+        otroContainer.classList.add("oculto");
+        otroContainer.querySelector("input").required = false;
+    }
+}
+
+// FUNCIÓN QUE BLOQUEA EMOJIS Y ACTUALIZA CONTADOR
+function limpiarTexto(i) {
+    const textarea = document.getElementById(`pregunta_${i}`);
+    const contador = document.getElementById(`contador_${i}`);
+
+    // Elimina emojis y símbolos Unicode gráficos
+    textarea.value = textarea.value.replace(
+        /([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF]+|[\u2600-\u26FF])/g,
+        ''
+    );
+
+    contador.textContent = textarea.value.length;
+}
+
+// Envío del formulario
+document.getElementById("tarotForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    if (!this.checkValidity()) {
+    alert("Por favor completá todos los campos obligatorios.");
+    return;
+}
+if (!confirm("¿Confirmás que querés enviar tus preguntas? Luego no podrán modificarse.")) {
+    return;
+}
+// Enviar datos a Make
+const data = new FormData(this);
+
+fetch("https://hook.us2.make.com/jp7gpnwfrykmtqupjjhksskpv8slgtwg", {
+    method: "POST",
+    body: data
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error("Error al enviar a Make");
+    }
+
+    alert("Preguntas cargadas correctamente. Ahora vas a pasar a elegir tus cartas.");
+
+    setTimeout(function() {
+        window.location.replace(`tirada.html?orden=${numeroOrden}&preguntas=${cantidad}`);
+    }, 1500);
+})
+.catch(error => {
+    alert("Hubo un problema al enviar el formulario. Intentá nuevamente.");
+});
+
+});   
+
+</script>
+
+</body>
+</html>
