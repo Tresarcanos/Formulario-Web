@@ -219,11 +219,43 @@ fetch("https://hook.us2.make.com/jp7gpnwfrykmtqupjjhksskpv8slgtwg", {
         throw new Error("Error al enviar a Make");
     }
 
-    alert("Preguntas cargadas correctamente. Ahora vas a pasar a elegir tus cartas.");
+    // Crear modal de confirmación
+const modal = document.createElement("div");
+modal.style.position = "fixed";
+modal.style.top = "50%";
+modal.style.left = "50%";
+modal.style.transform = "translate(-50%, -50%)";
+modal.style.background = "white";
+modal.style.color = "black";
+modal.style.padding = "30px";
+modal.style.borderRadius = "15px";
+modal.style.textAlign = "center";
+modal.style.zIndex = "9999";
+modal.style.boxShadow = "0 20px 60px rgba(0,0,0,0.4)";
 
-    setTimeout(function() {
-        window.location.replace(`tirada.html?orden=${numeroOrden}&preguntas=${cantidad}`);
-    }, 1500);
+modal.innerHTML = `
+  <h2 style="margin-bottom:15px;">✨ Preguntas cargadas correctamente</h2>
+  <p style="margin-bottom:20px;">
+    Ahora vas a pasar a elegir tus cartas.
+  </p>
+  <button id="btnIrTirada" style="
+    padding:10px 20px;
+    background:purple;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+  ">
+    Aceptar
+  </button>
+`;
+
+document.body.appendChild(modal);
+
+document.getElementById("btnIrTirada").addEventListener("click", function() {
+  window.location.href = 
+    `https://tresarcanos.github.io/Web-tirada-animada/?orden=${numeroOrden}&preguntas=${cantidad}`;
+});
 })
 .catch(error => {
     alert("Hubo un problema al enviar el formulario. Intentá nuevamente.");
