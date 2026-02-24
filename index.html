@@ -101,17 +101,34 @@ button:hover {
 
 <script>
 
-// Leer parámetro de URL
-const params = new URLSearchParams(window.location.search);
-let cantidad = parseInt(params.get("preguntas"));
-
 // Bloquear fechas futuras en fecha de nacimiento
 const fechaInput = document.getElementById("fecha_nacimiento");
 const hoy = new Date().toISOString().split("T")[0];
 fechaInput.setAttribute("max", hoy);
 
-// Obtener número de orden desde la URL
+
+// Leer parámetro de URL
+const params = new URLSearchParams(window.location.search);
+
 let numeroOrden = params.get("orden");
+let cantidad = parseInt(params.get("preguntas"));
+
+// Si algo vino cortado por el #, lo reconstruimos desde el hash
+if (window.location.hash) {
+    const hashContent = window.location.hash.substring(1); // saca el #
+
+    // reconstruimos los parámetros que quedaron en el hash
+    const hashParams = new URLSearchParams(hashContent);
+
+    if (!numeroOrden) {
+        // el primer valor del hash es el número
+        numeroOrden = hashContent.split("&")[0];
+    }
+
+    if (!cantidad) {
+        cantidad = parseInt(hashParams.get("preguntas"));
+    }
+}
 
 // Si no vino por query, lo tomamos del hash
 if (!numeroOrden && window.location.hash) {
