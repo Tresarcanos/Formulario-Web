@@ -111,7 +111,13 @@ const hoy = new Date().toISOString().split("T")[0];
 fechaInput.setAttribute("max", hoy);
 
 // Obtener número de orden desde la URL
-const numeroOrden = params.get("orden");
+let numeroOrden = params.get("orden");
+
+// Si no vino por query, lo tomamos del hash
+if (!numeroOrden && window.location.hash) {
+    const hashContent = window.location.hash.substring(1); // quita el #
+    numeroOrden = hashContent.split("&")[0]; // corta antes de otros parámetros
+}
 
 if (!numeroOrden) {
     alert("Error: No se detectó número de orden.");
